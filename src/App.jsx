@@ -12,9 +12,9 @@ function App() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const loadDashboardData = async () => {
+    const loadDashboardData = async (isinitialload=false) => {
       try {
-        setLoading(true);
+        if (isinitialload) setLoading(true);
 
         const [latest, all] = await Promise.all([
           getLatestReading(),
@@ -27,11 +27,19 @@ function App() {
         console.error(err);
         setError("Failed to load telemetry data.");
       } finally {
-        setLoading(false);
+        if (isinitialload) setLoading(false);
       }
     };
 
-    loadDashboardData();
+    loadDashboardData(true);
+
+    //Auto-refresh every 3 seconds
+    const interval = setInterval(() => {
+      loadDashboardData(false);
+    }, 3000);
+
+    //Cleanup
+    return () => clearInterval(interval);
   }, []);
 
   if (loading) return <p>Loading dashboard...</p>;
